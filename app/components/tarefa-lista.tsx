@@ -1,13 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
-export type TarefaDaLista = {
-  id: string;
-  titulo: string;
-  descricao?: string;
-  dataCriacao: string;
-};
+import {
+  extrairMensagemDeErro,
+  solicitarListagem,
+  type TarefaDaLista
+} from "../lib/tarefas-api";
 
 type Feedback =
   | { tipo: "sucesso"; mensagem: string }
@@ -22,53 +22,6 @@ const formatadorData = new Intl.DateTimeFormat("pt-BR", {
   timeStyle: "short",
   timeZone: "America/Sao_Paulo"
 });
-
-function extrairMensagemDeErro(payload: unknown, mensagemPadrao: string): string {
-  const mensagem = (
-    payload as { error?: { json?: { message?: unknown } } } | null
-  )?.error?.json?.message;
-
-  return typeof mensagem === "string" ? mensagem : mensagemPadrao;
-}
-
-function ehTarefaDaLista(valor: unknown): valor is TarefaDaLista {
-  if (typeof valor !== "object" || valor === null) {
-    return false;
-  }
-
-  const tarefa = valor as Partial<TarefaDaLista>;
-
-  return (
-    typeof tarefa.id === "string" &&
-    typeof tarefa.titulo === "string" &&
-    (tarefa.descricao === undefined || typeof tarefa.descricao === "string") &&
-    typeof tarefa.dataCriacao === "string"
-  );
-}
-
-async function solicitarListagem(): Promise<TarefaDaLista[]> {
-  const resposta = await fetch("/api/trpc/tarefa.listar", {
-    method: "GET",
-    cache: "no-store"
-  });
-  const payload = await resposta.json().catch(() => null);
-
-  if (!resposta.ok) {
-    throw new Error(
-      extrairMensagemDeErro(payload, "Não foi possível atualizar as tarefas.")
-    );
-  }
-
-  const tarefas = (
-    payload as { result?: { data?: { json?: unknown } } } | null
-  )?.result?.data?.json;
-
-  if (!Array.isArray(tarefas) || !tarefas.every(ehTarefaDaLista)) {
-    throw new Error("A resposta da listagem de tarefas é inválida.");
-  }
-
-  return tarefas;
-}
 
 async function solicitarExclusao(id: string): Promise<void> {
   const resposta = await fetch("/api/trpc/tarefa.deletar", {
@@ -125,13 +78,23 @@ export default function TarefaLista({
 
     try {
       await solicitarExclusao(tarefa.id);
-      setTarefas((tarefasAtuais) =>
-        tarefasAtuais.filter((item) => item.id !== tarefa.id)
-      );
-      setFeedback({
-        tipo: "sucesso",
-        mensagem: `A tarefa “${tarefa.titulo}” foi excluída.`
-      });
+      try {
+        const tarefasAtualizadas = await solicitarListagem();
+        setTarefas(tarefasAtualizadas);
+        setFeedback({
+          tipo: "sucesso",
+          mensagem: `A tarefa “${tarefa.titulo}” foi excluída.`
+        });
+      } catch {
+        setTarefas((tarefasAtuais) =>
+          tarefasAtuais.filter((item) => item.id !== tarefa.id)
+        );
+        setFeedback({
+          tipo: "erro",
+          mensagem:
+            "A tarefa foi excluída, mas não foi possível atualizar a lista."
+        });
+      }
     } catch (erro) {
       setFeedback({
         tipo: "erro",
@@ -243,25 +206,33 @@ export default function TarefaLista({
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => excluirTarefa(tarefa)}
-                  disabled={atualizando || idEmExclusao !== null}
-                  className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-700 transition-colors hover:border-red-300 hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:cursor-not-allowed disabled:opacity-50"
-                  aria-label={`Excluir a tarefa ${tarefa.titulo}`}
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.8"
-                    className="size-4"
-                    aria-hidden="true"
+                <div className="flex shrink-0 gap-2">
+                  <Link
+                    href={`/tarefas/${encodeURIComponent(tarefa.id)}/editar`}
+                    className="inline-flex min-h-10 flex-1 items-center justify-center rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600 sm:flex-none"
                   >
-                    <path d="M4 7h16M9 7V4.75h6V7m-8.25 0 .75 12.25h9L17.25 7M10 10.5v5.5m4-5.5v5.5" />
-                  </svg>
-                  {excluindo ? "Excluindo..." : "Excluir"}
-                </button>
+                    Editar
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => excluirTarefa(tarefa)}
+                    disabled={atualizando || idEmExclusao !== null}
+                    className="inline-flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-700 transition-colors hover:border-red-300 hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
+                    aria-label={`Excluir a tarefa ${tarefa.titulo}`}
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      className="size-4"
+                      aria-hidden="true"
+                    >
+                      <path d="M4 7h16M9 7V4.75h6V7m-8.25 0 .75 12.25h9L17.25 7M10 10.5v5.5m4-5.5v5.5" />
+                    </svg>
+                    {excluindo ? "Excluindo..." : "Excluir"}
+                  </button>
+                </div>
               </li>
             );
           })}
