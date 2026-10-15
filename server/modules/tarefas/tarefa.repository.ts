@@ -7,7 +7,12 @@ import type {
 } from "./tarefa.input";
 import { tarefaSchema, type Tarefa } from "./tarefa.schema";
 
-const tarefas: Tarefa[] = [];
+type ArmazenamentoGlobal = typeof globalThis & {
+  tarefasDoDesafioArtefact?: Tarefa[];
+};
+
+const armazenamentoGlobal = globalThis as ArmazenamentoGlobal;
+const tarefas = (armazenamentoGlobal.tarefasDoDesafioArtefact ??= []);
 
 export function criarTarefa(input: CriarTarefaInput): Tarefa {
 
