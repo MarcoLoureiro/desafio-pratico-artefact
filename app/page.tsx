@@ -3,9 +3,11 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import TarefaLista from "./components/tarefa-lista";
-import type {
-  FeedbackTarefa,
-  TarefaDaLista
+import {
+  TAREFAS_POR_PAGINA,
+  type FeedbackTarefa,
+  type PaginaDeTarefas,
+  type TarefaDaLista
 } from "./lib/tarefas-api";
 import { appRouter } from "@/server/trpc/router";
 
@@ -47,15 +49,21 @@ async function TarefasCarregadas({ searchParams }: HomeProps) {
     req: new Request("http://localhost"),
     resHeaders: new Headers()
   });
-  const tarefasCarregadas = await caller.tarefa.listar();
-  const tarefas: TarefaDaLista[] = tarefasCarregadas.map((tarefa) => ({
+  const paginaCarregada = await caller.tarefa.listarPaginada({
+    limite: TAREFAS_POR_PAGINA
+  });
+  const tarefas: TarefaDaLista[] = paginaCarregada.itens.map((tarefa) => ({
     ...tarefa,
     dataCriacao: tarefa.dataCriacao.toISOString()
   }));
+  const paginaInicial: PaginaDeTarefas = {
+    ...paginaCarregada,
+    itens: tarefas
+  };
 
   return (
     <TarefaLista
-      tarefasIniciais={tarefas}
+      paginaInicial={paginaInicial}
       feedbackInicial={obterFeedback(resultado)}
     />
   );

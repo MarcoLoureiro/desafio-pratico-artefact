@@ -5,6 +5,14 @@ export type TarefaDaLista = {
   dataCriacao: string;
 };
 
+export type PaginaDeTarefas = {
+  itens: TarefaDaLista[];
+  proximoCursor: string | null;
+  total: number;
+};
+
+export const TAREFAS_POR_PAGINA = 5;
+
 export type FeedbackTarefa = {
   tipo: "sucesso" | "erro" | "aviso";
   mensagem: string;
@@ -44,6 +52,59 @@ function ehTarefaDaLista(valor: unknown): valor is TarefaDaLista {
     (tarefa.descricao === undefined || typeof tarefa.descricao === "string") &&
     typeof tarefa.dataCriacao === "string"
   );
+}
+
+function ehPaginaDeTarefas(valor: unknown): valor is PaginaDeTarefas {
+  if (typeof valor !== "object" || valor === null) {
+    return false;
+  }
+
+  const pagina = valor as Partial<PaginaDeTarefas>;
+
+  return (
+    Array.isArray(pagina.itens) &&
+    pagina.itens.every(ehTarefaDaLista) &&
+    (pagina.proximoCursor === null ||
+      typeof pagina.proximoCursor === "string") &&
+    typeof pagina.total === "number"
+  );
+}
+
+export async function solicitarPaginaDeTarefas(
+  cursor: string | null = null
+): Promise<PaginaDeTarefas> {
+  const input = encodeURIComponent(
+    JSON.stringify({
+      json: {
+        cursor,
+        limite: TAREFAS_POR_PAGINA
+      }
+    })
+  );
+  const resposta = await fetch(
+    `/api/trpc/tarefa.listarPaginada?input=${input}`,
+    {
+      method: "GET",
+      cache: "no-store"
+    }
+  );
+  const payload = await resposta.json().catch(() => null);
+
+  if (!resposta.ok) {
+    throw new Error(
+      extrairMensagemDeErro(payload, "Não foi possível carregar mais tarefas.")
+    );
+  }
+
+  const pagina = (
+    payload as { result?: { data?: { json?: unknown } } } | null
+  )?.result?.data?.json;
+
+  if (!ehPaginaDeTarefas(pagina)) {
+    throw new Error("A resposta da listagem de tarefas é inválida.");
+  }
+
+  return pagina;
 }
 
 export async function solicitarListagem(): Promise<TarefaDaLista[]> {

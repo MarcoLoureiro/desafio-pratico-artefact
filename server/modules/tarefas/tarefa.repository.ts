@@ -3,7 +3,8 @@ import { randomUUID } from "node:crypto";
 import type {
   AtualizarTarefaInput,
   CriarTarefaInput,
-  DeletarTarefaInput
+  DeletarTarefaInput,
+  ListarTarefasPaginadasInput
 } from "./tarefa.input";
 import { tarefaSchema, type Tarefa } from "./tarefa.schema";
 
@@ -29,6 +30,32 @@ export function criarTarefa(input: CriarTarefaInput): Tarefa {
 
 export function listarTarefas(): Tarefa[] {
   return structuredClone(tarefas);
+}
+
+export function listarTarefasPaginadas({
+  cursor,
+  limite
+}: ListarTarefasPaginadasInput) {
+  const tarefasOrdenadas = [...tarefas].sort(
+    (tarefaA, tarefaB) =>
+      tarefaB.dataCriacao.getTime() - tarefaA.dataCriacao.getTime()
+  );
+  const indiceDoCursor = cursor
+    ? tarefasOrdenadas.findIndex((tarefa) => tarefa.id === cursor)
+    : -1;
+  const indiceInicial = indiceDoCursor >= 0 ? indiceDoCursor + 1 : 0;
+  const tarefasDaPagina = tarefasOrdenadas.slice(
+    indiceInicial,
+    indiceInicial + limite + 1
+  );
+  const temProximaPagina = tarefasDaPagina.length > limite;
+  const itens = tarefasDaPagina.slice(0, limite);
+
+  return {
+    itens: structuredClone(itens),
+    proximoCursor: temProximaPagina ? itens.at(-1)?.id ?? null : null,
+    total: tarefasOrdenadas.length
+  };
 }
 
 export function atualizarTarefa(input: AtualizarTarefaInput): Tarefa | undefined {
