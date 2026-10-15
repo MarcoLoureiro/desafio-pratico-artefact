@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { type FormEvent, useState } from "react";
 
-import { solicitarListagem } from "../lib/tarefas-api";
+import { mensagemDeFalha, solicitarListagem } from "../lib/tarefas-api";
 
 type TarefaInicial = {
   id: string;
@@ -100,21 +100,27 @@ export default function TarefaFormulario({ tarefa }: TarefaFormularioProps) {
 
     try {
       await salvarTarefa(tarefa, titulo, descricao);
-      await solicitarListagem();
-      setFeedback({
-        tipo: "sucesso",
-        mensagem: modoEdicao
-          ? "Tarefa atualizada com sucesso."
-          : "Tarefa criada com sucesso."
-      });
-      window.location.assign(new URL("/", window.location.origin));
+      let atualizacaoConfirmada = true;
+
+      try {
+        await solicitarListagem();
+      } catch {
+        atualizacaoConfirmada = false;
+      }
+
+      const resultado = `${modoEdicao ? "atualizada" : "criada"}${
+        atualizacaoConfirmada ? "" : "-com-aviso"
+      }`;
+      const destino = new URL("/", window.location.origin);
+      destino.searchParams.set("resultado", resultado);
+      window.location.assign(destino);
     } catch (erro) {
       setFeedback({
         tipo: "erro",
-        mensagem:
-          erro instanceof Error
-            ? erro.message
-            : "Não foi possível salvar a tarefa."
+        mensagem: mensagemDeFalha(
+          erro,
+          "Não foi possível salvar a tarefa."
+        )
       });
     } finally {
       setEnviando(false);
@@ -183,6 +189,7 @@ export default function TarefaFormulario({ tarefa }: TarefaFormularioProps) {
               : "border-red-200 bg-red-50 text-red-800"
             }`}
           role={feedback.tipo === "erro" ? "alert" : "status"}
+          aria-live="polite"
         >
           {feedback.mensagem}
         </div>

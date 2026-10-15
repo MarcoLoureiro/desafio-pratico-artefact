@@ -5,6 +5,21 @@ export type TarefaDaLista = {
   dataCriacao: string;
 };
 
+export type FeedbackTarefa = {
+  tipo: "sucesso" | "erro" | "aviso";
+  mensagem: string;
+};
+
+export function mensagemDeFalha(erro: unknown, mensagemPadrao: string): string {
+  if (erro instanceof TypeError) {
+    return "Não foi possível conectar ao servidor. Tente novamente.";
+  }
+
+  return erro instanceof Error && erro.message.trim()
+    ? erro.message
+    : mensagemPadrao;
+}
+
 export function extrairMensagemDeErro(
   payload: unknown,
   mensagemPadrao: string

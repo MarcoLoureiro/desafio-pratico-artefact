@@ -1,20 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   extrairMensagemDeErro,
+  mensagemDeFalha,
   solicitarListagem,
+  type FeedbackTarefa,
   type TarefaDaLista
 } from "../lib/tarefas-api";
 
-type Feedback =
-  | { tipo: "sucesso"; mensagem: string }
-  | { tipo: "erro"; mensagem: string };
-
 type TarefaListaProps = {
   tarefasIniciais: TarefaDaLista[];
+  feedbackInicial?: FeedbackTarefa;
 };
 
 const formatadorData = new Intl.DateTimeFormat("pt-BR", {
@@ -41,12 +40,21 @@ async function solicitarExclusao(id: string): Promise<void> {
 }
 
 export default function TarefaLista({
-  tarefasIniciais
+  tarefasIniciais,
+  feedbackInicial
 }: TarefaListaProps) {
   const [tarefas, setTarefas] = useState(tarefasIniciais);
   const [idEmExclusao, setIdEmExclusao] = useState<string | null>(null);
   const [atualizando, setAtualizando] = useState(false);
-  const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [feedback, setFeedback] = useState<FeedbackTarefa | null>(
+    feedbackInicial ?? null
+  );
+
+  useEffect(() => {
+    if (feedbackInicial) {
+      window.history.replaceState(null, "", "/");
+    }
+  }, [feedbackInicial]);
 
   async function atualizarLista() {
     setAtualizando(true);
@@ -62,10 +70,10 @@ export default function TarefaLista({
     } catch (erro) {
       setFeedback({
         tipo: "erro",
-        mensagem:
-          erro instanceof Error
-            ? erro.message
-            : "Não foi possível atualizar as tarefas."
+        mensagem: mensagemDeFalha(
+          erro,
+          "Não foi possível atualizar as tarefas."
+        )
       });
     } finally {
       setAtualizando(false);
@@ -98,10 +106,10 @@ export default function TarefaLista({
     } catch (erro) {
       setFeedback({
         tipo: "erro",
-        mensagem:
-          erro instanceof Error
-            ? erro.message
-            : "Não foi possível excluir a tarefa."
+        mensagem: mensagemDeFalha(
+          erro,
+          "Não foi possível excluir a tarefa."
+        )
       });
     } finally {
       setIdEmExclusao(null);
@@ -109,7 +117,10 @@ export default function TarefaLista({
   }
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <section
+      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+      aria-busy={atualizando || idEmExclusao !== null}
+    >
       <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-5">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">
@@ -122,6 +133,24 @@ export default function TarefaLista({
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={atualizarLista}
+            disabled={atualizando || idEmExclusao !== null}
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-blue-200 px-3 py-2 text-sm font-semibold text-blue-700 transition-colors hover:border-blue-300 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              className={`size-4 ${atualizando ? "animate-spin" : ""}`}
+              aria-hidden="true"
+            >
+              <path d="M20 11a8 8 0 1 0-2.34 5.66M20 5v6h-6" />
+            </svg>
+            {atualizando ? "Atualizando..." : "Atualizar"}
+          </button>
           <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
             {tarefas.length}
           </span>
@@ -130,13 +159,25 @@ export default function TarefaLista({
 
       {feedback && (
         <div
-          className={`mt-5 rounded-xl border px-4 py-3 text-sm ${feedback.tipo === "sucesso"
-            ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-            : "border-red-200 bg-red-50 text-red-800"
-            }`}
+          className={`mt-5 flex items-start justify-between gap-4 rounded-xl border px-4 py-3 text-sm ${
+            feedback.tipo === "sucesso"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+              : feedback.tipo === "aviso"
+                ? "border-amber-200 bg-amber-50 text-amber-800"
+                : "border-red-200 bg-red-50 text-red-800"
+          }`}
           role={feedback.tipo === "erro" ? "alert" : "status"}
+          aria-live="polite"
         >
-          {feedback.mensagem}
+          <span>{feedback.mensagem}</span>
+          <button
+            type="button"
+            onClick={() => setFeedback(null)}
+            className="shrink-0 rounded font-semibold opacity-70 hover:opacity-100 focus-visible:outline-2 focus-visible:outline-offset-2"
+            aria-label="Fechar mensagem"
+          >
+            ×
+          </button>
         </div>
       )}
 

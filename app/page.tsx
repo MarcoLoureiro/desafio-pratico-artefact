@@ -3,12 +3,46 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import TarefaLista from "./components/tarefa-lista";
-import type { TarefaDaLista } from "./lib/tarefas-api";
+import type {
+  FeedbackTarefa,
+  TarefaDaLista
+} from "./lib/tarefas-api";
 import { appRouter } from "@/server/trpc/router";
 
-async function TarefasCarregadas() {
+type HomeProps = {
+  searchParams: Promise<{ resultado?: string | string[] }>;
+};
+
+function obterFeedback(resultado: string | string[] | undefined) {
+  const valor = Array.isArray(resultado) ? resultado[0] : resultado;
+  const feedbacks: Record<string, FeedbackTarefa> = {
+    criada: {
+      tipo: "sucesso",
+      mensagem: "Tarefa criada com sucesso."
+    },
+    atualizada: {
+      tipo: "sucesso",
+      mensagem: "Tarefa atualizada com sucesso."
+    },
+    "criada-com-aviso": {
+      tipo: "aviso",
+      mensagem:
+        "A tarefa foi criada, mas houve uma falha ao confirmar a atualização automática."
+    },
+    "atualizada-com-aviso": {
+      tipo: "aviso",
+      mensagem:
+        "A tarefa foi atualizada, mas houve uma falha ao confirmar a atualização automática."
+    }
+  };
+
+  return valor ? feedbacks[valor] : undefined;
+}
+
+async function TarefasCarregadas({ searchParams }: HomeProps) {
   await io();
 
+  const { resultado } = await searchParams;
   const caller = appRouter.createCaller({
     req: new Request("http://localhost"),
     resHeaders: new Headers()
@@ -19,7 +53,12 @@ async function TarefasCarregadas() {
     dataCriacao: tarefa.dataCriacao.toISOString()
   }));
 
-  return <TarefaLista tarefasIniciais={tarefas} />;
+  return (
+    <TarefaLista
+      tarefasIniciais={tarefas}
+      feedbackInicial={obterFeedback(resultado)}
+    />
+  );
 }
 
 function CarregandoTarefas() {
@@ -41,7 +80,7 @@ function CarregandoTarefas() {
   );
 }
 
-export default function Home() {
+export default function Home({ searchParams }: HomeProps) {
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-12 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-3xl">
@@ -69,7 +108,7 @@ export default function Home() {
         </header>
 
         <Suspense fallback={<CarregandoTarefas />}>
-          <TarefasCarregadas />
+          <TarefasCarregadas searchParams={searchParams} />
         </Suspense>
       </div>
     </main>
