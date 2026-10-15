@@ -122,24 +122,6 @@ export default function TarefaLista({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={atualizarLista}
-            disabled={atualizando || idEmExclusao !== null}
-            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-blue-200 px-3 py-2 text-sm font-semibold text-blue-700 transition-colors hover:border-blue-300 hover:bg-blue-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              className={`size-4 ${atualizando ? "animate-spin" : ""}`}
-              aria-hidden="true"
-            >
-              <path d="M20 11a8 8 0 1 0-2.34 5.66M20 5v6h-6" />
-            </svg>
-            {atualizando ? "Atualizando..." : "Atualizar"}
-          </button>
           <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
             {tarefas.length}
           </span>
