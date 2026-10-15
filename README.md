@@ -51,11 +51,11 @@ aplicação web?</h3>
 <h3>b) Conhece a lib tRPC? Se sim, quais são as principais vantagens e desvantagens
 de utilizar tRPC, especialmente em termos de segurança, tipagem e escalabilidade?</h3>
 
-Sim. O tRPC permite que você construa e consuma APIs totalmente seguras sem esquemas ou geração de código. Combina conceitos de REST e GraphQL.
-Em projetos TypeScript full-stack, manter os contratos de API sincronizados entre o cliente e o servidor é um problema comum. O tRPC faz isso aproveitando a inferência de tipos do TypeScript diretamente, sem nenhuma etapa de geração de código, e detecta problemas no momento da compilação.
+Sim. O tRPC permite a construção e consumo de APIs seguras sem esquemas ou geração extra de código, combinando conceitos de REST e GraphQL.
+Ele vem como forma de resolver um problema comum em projetos fullstack que utilizam TypeScript, o de manter os contratos de API sincronizados entre cliente e servidor. O tRPC faz isso através da inferência de tipos do TypeScript diretamente, sem nenhuma etapa de geração de código, além de detectar problemas no momento da compilação.
 
 Vantagem:
-- Segurança de tipos estática completa e preenchimento automático no cliente, para entradas, saídas e erros<br>
+- Segurança de tipos estática completa e preenchimento automático no cliente, para entradas, saídas e erros
 - Sem geração de código, inchaço em tempo de execução ou pipeline de construção
 
 Desvantagens:
