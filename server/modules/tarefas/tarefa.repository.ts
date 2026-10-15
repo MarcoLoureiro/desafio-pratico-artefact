@@ -16,3 +16,7 @@ export function criarTarefa(input: CriarTarefaInput): Tarefa {
 
   return tarefa;
 }
+
+export function listarTarefas(): Tarefa[] {
+  return structuredClone(tarefas);
+}

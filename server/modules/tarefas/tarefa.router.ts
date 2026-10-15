@@ -1,6 +1,6 @@
 import { createTRPCRouter, publicProcedure } from "../../trpc/init";
 import { criarTarefaInputSchema } from "./tarefa.input";
-import { criarTarefa } from "./tarefa.repository";
+import { criarTarefa, listarTarefas } from "./tarefa.repository";
 import { tarefaSchema } from "./tarefa.schema";
 
 export const tarefaRouter = createTRPCRouter({
@@ -8,4 +8,7 @@ export const tarefaRouter = createTRPCRouter({
     .input(criarTarefaInputSchema)
     .output(tarefaSchema)
     .mutation(({ input }) => criarTarefa(input)),
+  listar: publicProcedure
+    .output(tarefaSchema.array())
+    .query(() => listarTarefas()),
 });
