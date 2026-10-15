@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## 1. ReactJS e NextJS: Renderização e Estratégias
+a) Explique, com suas próprias palavras, as diferenças entre:
+○ Client-Side Rendering (CSR)
+○ Server-Side Rendering (SSR)
+○ Static Site Generation (SSG)
 
-## Getting Started
+No CSR a renderização ocorre principalmente no navegador, com o servidor entregando somente um html com o mínimo de conteúdo, encarregando o javascript demontar a interface e carregar os demais conteúdos necessários. Portanto no primeiro carregamento costuma ser mais lento.<br>
 
-First, run the development server:
+No SSR a renderização funciona a base de requisições feitas pelo usuário, ou seja, o servidor entrega um html já gerado com os dados da requisição. Esse html é tratado pelo React para que a página se torne iterativa. Portanto o carregamento inicial é mais rápido do que o CSR.<br>
+
+NO SSG a renderização ocorre antecipadamente, sendo o html gerado na etapa de build do projeto e este mesmo arquivo reutilizado nas requisições (não atualiza mediante a requisições de usuário)<br>
+
+b) Em que cenários cada uma dessas abordagens pode ser vantajosa ou
+problemática? Dê exemplos práticos.<br>
+
+CSR é vantajoso quando a aplicação possui muita interação depois do carregamento inicial e não depende tanto de SEO.
+<br>
+Exemplo de cenário vantajoso: 
+Um dashboard financeiro no qual o usuário altera filtros, períodos e gráficos. Depois que a página carrega, o React pode atualizar somente as partes necessárias sem recarregar tudo
+<br>
+Exemplo de cenário desvantajoso:
+Um site de notícias que receberia uma página vazia e só depois faria o carregamento por meio do javascript para exibição de notícias.
+<br>
+
+O SSR é vantajoso quando os dados mudam frequentemente e o conteúdo precisa chegar atualizado e preenchido no primeiro acesso.
+<br>
+Exemplo de cenário vantajoso: 
+Um e-commerce que precisa exibir a página com produtos disponíveis e com preços atualizados sempre que for acessada pelo usuário.
+<br>
+Exemplo de cenário desvantajoso:
+Atualizar uma página de gráficos que exija realizar consultas pesadas pode deixar o tempo de resposta da página lenta e sobrecarregar o servidor.
+<br>
+
+O SSG é vantajoso quando o conteúdo muda pouco e pode ser preparado antecipadamente.
+<br>
+Exemplo de cenário vantajoso: 
+Uma página institucional contendo informações, uma vez que o conteúdo não precisa ser atualizado constantemente
+
+<br>
+Exemplo de cenário desvantajoso:
+Um catálogo de cinema que exigiria atualização constante de filmes que estão em cartaz
+<br>
+
+## 2. Backend: Conceitos e Approaches
+<br>
+a) Quais são as principais maneiras de implementar um backend para uma
+aplicação web?
+
+- Backend integrado à aplicação como é o caso desse desafio que contém backend e frontend;<br>
+- Backend separado que geralmente é desenvolvido como uma aplicação independente e disponibiliza uma API para consumo;<br>
+- Backend as a Service (BaaS) cuja aplicação utiliza uma plataforma que já fornece funcionalidades de backend, como banco de dados, autenticação, APIs e etc (Firebase);<br>
+- Serveless que divide o backend em funções que são executadas somente quando há requisições (AWS Lambda).<br>
+<br>
+
+b) Conhece a lib tRPC? Se sim, quais são as principais vantagens e desvantagens
+de utilizar tRPC, especialmente em termos de segurança, tipagem e escalabilidade?
+<br>
+Sim. O tRPC permite que você construa e consuma APIs totalmente seguras sem esquemas ou geração de código. Combina conceitos de REST e GraphQL.
+Em projetos TypeScript full-stack, manter os contratos de API sincronizados entre o cliente e o servidor é um problema comum. O tRPC faz isso aproveitando a inferência de tipos do TypeScript diretamente, sem nenhuma etapa de geração de código, e detecta problemas no momento da compilação.
+<br>
+
+Vantagem:
+- Segurança de tipos estática completa e preenchimento automático no cliente, para entradas, saídas e erros<br>
+- Sem geração de código, inchaço em tempo de execução ou pipeline de construção
+
+Desvantagens:
+- Maior acomplamento de backend e frontend.
+- Em um cenário onde backend e frontend estão separados, estaria mais sucetível a haver problemas de integração.
+
+## Pré-requisitos
+Node na versão v22.23.3 (recomendada)
+
+## Instruções de uso
 
 ```bash
+npm ci
+# or
+npm install
+# and
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Em seguida abra a aplicação em [http://localhost:3000]
