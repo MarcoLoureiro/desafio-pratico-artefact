@@ -15,10 +15,12 @@ export const atualizarTarefaInputSchema = tarefaSchema
     titulo: true,
     descricao: true
   })
+
   .partial({
     titulo: true,
     descricao: true
   })
+  
   .refine(
     ({ titulo, descricao }) =>
       titulo !== undefined || descricao !== undefined,
@@ -28,3 +30,9 @@ export const atualizarTarefaInputSchema = tarefaSchema
 export type AtualizarTarefaInput = z.infer<
   typeof atualizarTarefaInputSchema
 >;
+
+export const deletarTarefaInputSchema = tarefaSchema.pick({
+  id: true
+});
+
+export type DeletarTarefaInput = z.infer<typeof deletarTarefaInputSchema>;
